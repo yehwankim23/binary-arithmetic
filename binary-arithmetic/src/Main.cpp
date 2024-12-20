@@ -1,7 +1,8 @@
 #include <string>
+#include <iostream>
+#include <iomanip>
 #include <cctype>
 #include <sstream>
-#include <iostream>
 
 struct Binary32 {
 public:
@@ -24,7 +25,24 @@ public:
         std::string error = binary32.error;
 
         if (error.empty()) {
-            stream << binary32.sign << " " << binary32.exponent + " " << binary32.mantissa;
+            std::string exponent = binary32.exponent;
+            exponent.insert(4, 1, ' ');
+
+            std::string mantissa = binary32.mantissa;
+            mantissa.insert(20, 1, ' ');
+            mantissa.insert(16, 1, ' ');
+            mantissa.insert(12, 1, ' ');
+            mantissa.insert(8, 1, ' ');
+            mantissa.insert(4, 1, ' ');
+
+            stream << std::left
+                << std::setw(6) << "sign"
+                << std::setw(11) << "exponent"
+                << std::setw(23) << "mantissa"
+                << std::endl
+                << std::setw(6) << binary32.sign
+                << std::setw(11) << exponent
+                << std::setw(23) << mantissa;
         } else {
             stream << error;
         }
@@ -81,13 +99,13 @@ Binary32 toBinary32(std::string number_string) {
     int exponent = 127;
     std::string mantissa_string = "";
 
-    while (integer > 1) {
+    while (integer > 0) {
         exponent++;
         mantissa_string = (integer % 2 == 0 ? "0" : "1") + mantissa_string;
         integer /= 2;
     }
 
-    if (exponent > 256) {
+    if (exponent > 255) {
         return Binary32("'" + number_string + "' is too large");
     }
 
@@ -97,7 +115,7 @@ Binary32 toBinary32(std::string number_string) {
         decimal = (decimal + (number_string[right_index] - '0')) / 10;
     }
 
-    while (mantissa_string.size() < 22) {
+    while (mantissa_string.size() < 23) {
         decimal *= 2;
 
         if (decimal >= 1) {
@@ -114,6 +132,8 @@ Binary32 toBinary32(std::string number_string) {
     }
 
     mantissa_string += (decimal == 0) ? "0" : "1";
+    mantissa_string.erase(0, 1);
+    exponent++;
 
     if (exponent < 0) {
         return Binary32("'" + number_string + "' is too small");
@@ -130,12 +150,6 @@ Binary32 toBinary32(std::string number_string) {
         exponent_string = "0" + exponent_string;
     }
 
-    std::cout << std::endl
-        << "sign     : " << sign_string << std::endl
-        << "exponent : " << exponent_string << std::endl
-        << "mantissa : " << mantissa_string << std::endl
-        << std::endl;
-
     return Binary32(sign_string, exponent_string, mantissa_string);
 }
 
@@ -145,6 +159,6 @@ int main() {
     std::string input;
     std::getline(std::cin, input);
 
-    std::cout << toBinary32(input) << std::endl;
+    std::cout << std::endl << toBinary32(input) << std::endl;
     return 0;
 }
